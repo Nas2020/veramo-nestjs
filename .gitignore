@@ -166,3 +166,11 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 >>>>>>> 45ac070 (Initial commit)
+
+#Files
+database.sqlite
+didKey.json
+didPeer.json
+didWeb.json
+
+

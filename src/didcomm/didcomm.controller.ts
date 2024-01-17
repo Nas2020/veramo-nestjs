@@ -2,7 +2,7 @@
 // didcomm.controller.ts
 import { Body, Controller, Post } from '@nestjs/common';
 import { VeramoAgentService } from './didcomm.service.js';
-import { ApiOperation, ApiBody } from '@nestjs/swagger';
+import { ApiOperation, ApiBody, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { SendMessageDto } from './dtos/send-message.dto.js';
 
 @Controller('didcomm')
@@ -19,7 +19,7 @@ export class DidCommController {
 
 
     @Post('/message')
-    @ApiOperation({ summary: 'Receive a message from a specified DID' })
+    @ApiExcludeEndpoint() // Use ApiExclude decorator to exclude this endpoint
     async handleIncomingDIDCommMessage(@Body() body: string): Promise<any> {
         // console.log("Received plain text body:", body);
         const packedMessage = { "message": body }
