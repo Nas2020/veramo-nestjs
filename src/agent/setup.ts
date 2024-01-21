@@ -49,7 +49,7 @@ export async function createVeramoAgent(kmsSecretKey: string, fileName: string) 
   const DIDCommEventSniffer: IEventListener = {
     eventTypes: ['DIDCommV2Message-sent', 'DIDCommV2Message-received'],
     onEvent: async (event, context) => {
-      console.log('Event received:', event);
+      console.log('Event Logged:', event);
       // Add your custom logic here
     },
   };
