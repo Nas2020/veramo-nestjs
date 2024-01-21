@@ -21,10 +21,13 @@ import { getResolver as webDidResolver } from 'web-did-resolver';
 import { WebDIDProvider } from '@veramo/did-provider-web';
 import { Entities, KeyStore, DIDStore, PrivateKeyStore, migrations, DataStore, DataStoreORM } from '@veramo/data-store';
 import { DataSource } from 'typeorm';
-import { DIDComm, DIDCommHttpTransport, DIDCommMessageHandler, IDIDComm, IDIDCommTransport } from '@veramo/did-comm';
+import { DIDComm, DIDCommHttpTransport, DIDCommMessageHandler, IDIDComm, CoordinateMediationRecipientMessageHandler, RoutingMessageHandler, CoordinateMediationMediatorMessageHandler } from '@veramo/did-comm';
 import { MessageHandler } from '@veramo/message-handler';
 import { getResolver as getDidPeerResolver, PeerDIDProvider } from '@veramo/did-provider-peer';
 import { getDidKeyResolver, KeyDIDProvider } from '@veramo/did-provider-key'
+import { IMediationManager, MediationManagerPlugin, MediationResponse, PreMediationRequestPolicy, RequesterDid } from '@veramo/mediation-manager';
+import { KeyValueStore } from '@veramo/kv-store';
+
 
 export async function createVeramoAgent(kmsSecretKey: string, fileName: string) {
   let dbConnection;
@@ -40,7 +43,7 @@ export async function createVeramoAgent(kmsSecretKey: string, fileName: string) 
     }).initialize();
   } catch (error) {
     console.error("Failed to connect to the database", error);
-    throw error; 
+    throw error;
   }
 
   const DIDCommEventSniffer: IEventListener = {
@@ -50,9 +53,11 @@ export async function createVeramoAgent(kmsSecretKey: string, fileName: string) 
       // Add your custom logic here
     },
   };
-
+  const policyStore = new KeyValueStore<PreMediationRequestPolicy>({ store: new Map() })
+  const mediationStore = new KeyValueStore<MediationResponse>({ store: new Map() })
+  const recipientDidStore = new KeyValueStore<RequesterDid>({ store: new Map() })
   try {
-    return createAgent<IDIDManager & IKeyManager & IDataStore & IDataStoreORM & IResolver & ICredentialPlugin & IMessageHandler & IDIDComm>({
+    return createAgent<IDIDManager & IKeyManager & IDataStore & IMediationManager & IResolver & ICredentialPlugin & IMessageHandler & IDIDComm>({
       plugins: [
         new KeyManager({
           store: new KeyStore(dbConnection),
@@ -62,7 +67,7 @@ export async function createVeramoAgent(kmsSecretKey: string, fileName: string) 
         }),
         new DIDManager({
           store: new DIDStore(dbConnection),
-          defaultProvider: 'did:web',
+          defaultProvider: 'did:peer',
           providers: {
             'did:web': new WebDIDProvider({
               defaultKms: 'local',
@@ -82,14 +87,23 @@ export async function createVeramoAgent(kmsSecretKey: string, fileName: string) 
             ...getDidKeyResolver()
           }),
         }),
-        new CredentialPlugin(),
-
+        new DIDComm({
+          transports: [new DIDCommHttpTransport()]
+        }),
         new MessageHandler({
-          messageHandlers: [new DIDCommMessageHandler()],
+          messageHandlers: [
+            // @ts-ignore
+            new DIDCommMessageHandler(),
+            new CoordinateMediationMediatorMessageHandler(),
+            new CoordinateMediationRecipientMessageHandler(),
+            new RoutingMessageHandler(),
+          ],
         }),
         new DataStore(dbConnection),
         new DataStoreORM(dbConnection),
-        new DIDComm([new DIDCommHttpTransport()]),
+        // @ts-ignore
+        new MediationManagerPlugin(true, policyStore, mediationStore, recipientDidStore),
+        new CredentialPlugin(),
         DIDCommEventSniffer
       ],
 
