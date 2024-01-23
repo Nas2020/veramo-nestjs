@@ -29,9 +29,7 @@ export class DidCommController {
     @Post('/message')
     @ApiExcludeEndpoint() // Use ApiExclude decorator to exclude this endpoint
     async handleIncomingDIDCommMessage(@Body() body: string): Promise<any> {
-        // console.log("Received plain text body:", body);
         const packedMessage = { "message": body }
-        // console.log("packedMessage", packedMessage)
         return this.veramoAgentService.handleIncomingDIDCommMessage(packedMessage);
     }
 

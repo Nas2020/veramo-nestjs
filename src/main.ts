@@ -34,9 +34,9 @@ async function bootstrap() {
     SwaggerModule.setup('api', app, document);
 
     await app.listen(agent_port);
-    console.log('Application started successfully');
+    console.log(`${swaggerTitle} App started successfully`);
   } catch (error) {
-    console.error('Failed to initialize Veramo agent:', error);
+    console.error('Failed to initialize The Agent:', error);
     process.exit(1);
   }
 }

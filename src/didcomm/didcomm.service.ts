@@ -54,16 +54,18 @@ export class VeramoAgentService {
 
     async handleIncomingDIDCommMessage(packedMessage: any): Promise<{ text?: string, error?: string }> {
 
+
         try {
             const app = await NestFactory.create(AppModule);
             const veramoAgent = app.get('VERAMO_AGENT');
-            const unpackedMessage = await veramoAgent.unpackDIDCommMessage(packedMessage);
+            const unpackedMessage = await veramoAgent.handleMessage({ raw: packedMessage.message })
+    
             if (!unpackedMessage) {
                 console.error("Failed to unpack message: ", packedMessage);
                 return { error: "Error unpacking the message!" };
             }
-
-            const text = unpackedMessage.message.body.text;
+            console.log("unpackedMessage",unpackedMessage);
+            const text = unpackedMessage.data.text;
             console.log("text message:", text)
             return text;
         } catch (error) {
@@ -135,3 +137,6 @@ export class VeramoAgentService {
         }
     }
 }
+
+// const resultHandleMessage = await veramoAgent.handle(packedMessage)
+// console.log("resultHandleMessage", resultHandleMessage)

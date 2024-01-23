@@ -7,6 +7,7 @@ import {
   IDataStore,
   IDataStoreORM,
   IKeyManager,
+  IMessage,
   ICredentialPlugin,
   IMessageHandler,
   IEventListener,
@@ -21,8 +22,8 @@ import { getResolver as webDidResolver } from 'web-did-resolver';
 import { WebDIDProvider } from '@veramo/did-provider-web';
 import { Entities, KeyStore, DIDStore, PrivateKeyStore, migrations, DataStore, DataStoreORM } from '@veramo/data-store';
 import { DataSource } from 'typeorm';
-import { DIDComm, DIDCommHttpTransport, DIDCommMessageHandler, IDIDComm, CoordinateMediationRecipientMessageHandler, RoutingMessageHandler, CoordinateMediationMediatorMessageHandler } from '@veramo/did-comm';
-import { MessageHandler } from '@veramo/message-handler';
+import { DIDComm, DIDCommHttpTransport, DIDCommMessageHandler, IDIDComm, CoordinateMediationRecipientMessageHandler, RoutingMessageHandler, CoordinateMediationMediatorMessageHandler, TrustPingMessageHandler } from '@veramo/did-comm';
+import { MessageHandler, AbstractMessageHandler, Message } from '@veramo/message-handler';
 import { getResolver as getDidPeerResolver, PeerDIDProvider } from '@veramo/did-provider-peer';
 import { getDidKeyResolver, KeyDIDProvider } from '@veramo/did-provider-key'
 import { IMediationManager, MediationManagerPlugin, MediationResponse, PreMediationRequestPolicy, RequesterDid } from '@veramo/mediation-manager';
@@ -47,9 +48,9 @@ export async function createVeramoAgent(kmsSecretKey: string, fileName: string) 
   }
 
   const DIDCommEventSniffer: IEventListener = {
-    eventTypes: ['DIDCommV2Message-sent', 'DIDCommV2Message-received'],
+    eventTypes: ['DIDCommV2Message-received', 'DIDCommV2Message-sent', 'DIDCommV2Message-forwarded'],
     onEvent: async (event, context) => {
-      console.log('Event Logged:', event);
+      console.log('Event Logged:', event, 'data.message.body', event.data.message.body);
       // Add your custom logic here
     },
   };
@@ -97,6 +98,7 @@ export async function createVeramoAgent(kmsSecretKey: string, fileName: string) 
             new CoordinateMediationMediatorMessageHandler(),
             new CoordinateMediationRecipientMessageHandler(),
             new RoutingMessageHandler(),
+            // new TrustPingMessageHandler()
           ],
         }),
         new DataStore(dbConnection),
