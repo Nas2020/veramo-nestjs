@@ -5,9 +5,7 @@ import {
   IDIDManager,
   IResolver,
   IDataStore,
-  IDataStoreORM,
   IKeyManager,
-  IMessage,
   ICredentialPlugin,
   IMessageHandler,
   IEventListener,
@@ -50,7 +48,9 @@ export async function createVeramoAgent(kmsSecretKey: string, fileName: string) 
   const DIDCommEventSniffer: IEventListener = {
     eventTypes: ['DIDCommV2Message-received', 'DIDCommV2Message-sent', 'DIDCommV2Message-forwarded'],
     onEvent: async (event, context) => {
-      console.log('Event Logged:', event, 'data.message.body', event.data.message.body);
+      //console.log('Event Logged:', event, 'data.message.body', event.data.message.body);
+      console.log('Event Logged:', event);
+      //console.log('Event Logged:', event.type);
       // Add your custom logic here
     },
   };

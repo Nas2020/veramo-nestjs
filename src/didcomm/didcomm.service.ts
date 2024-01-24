@@ -137,6 +137,3 @@ export class VeramoAgentService {
         }
     }
 }
-
-// const resultHandleMessage = await veramoAgent.handle(packedMessage)
-// console.log("resultHandleMessage", resultHandleMessage)
